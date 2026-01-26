@@ -34,7 +34,14 @@ export function getNameUnsafe(data: any): string {
  * Hint: Use typeof checks and the 'in' operator for narrowing.
  */
 export function getNameSafe(data: unknown): string | null {
-  // Your implementation here
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "name" in data &&
+    typeof data.name === "string"
+  ) {
+    return data.name.toUpperCase();
+  }
   return null;
 }
 
@@ -54,6 +61,14 @@ export function getNameSafe(data: unknown): string | null {
  * Hint: Use typeof for primitives, instanceof for Error
  */
 export function processValue(value: unknown): string | null {
-  // Your implementation here
+  if (typeof value === "string") {
+    return value.toUpperCase();
+  }
+  if (typeof value === "number") {
+    return value.toFixed(2);
+  }
+  if (value instanceof Error) {
+    return value.message;
+  }
   return null;
 }
