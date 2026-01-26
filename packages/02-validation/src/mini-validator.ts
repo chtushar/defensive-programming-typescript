@@ -50,8 +50,10 @@ function getType(value: unknown): string {
 function string(): Schema<string> {
   return {
     parse(input: unknown): Result<string> {
-      // TODO: Return success if input is a string, failure otherwise
-      return { success: false, errors: ["Not implemented"] };
+      if (typeof input === "string") {
+        return { success: true, data: input };
+      }
+      return { success: false, errors: [`Expected string, got ${getType(input)}`] };
     },
   };
 }
@@ -59,8 +61,10 @@ function string(): Schema<string> {
 function number(): Schema<number> {
   return {
     parse(input: unknown): Result<number> {
-      // TODO: Return success if input is a number, failure otherwise
-      return { success: false, errors: ["Not implemented"] };
+      if (typeof input === "number") {
+        return { success: true, data: input };
+      }
+      return { success: false, errors: [`Expected number, got ${getType(input)}`] };
     },
   };
 }
@@ -68,8 +72,10 @@ function number(): Schema<number> {
 function boolean(): Schema<boolean> {
   return {
     parse(input: unknown): Result<boolean> {
-      // TODO: Return success if input is a boolean, failure otherwise
-      return { success: false, errors: ["Not implemented"] };
+      if (typeof input === "boolean") {
+        return { success: true, data: input };
+      }
+      return { success: false, errors: [`Expected boolean, got ${getType(input)}`] };
     },
   };
 }
@@ -91,12 +97,28 @@ function object<T extends Record<string, Schema<unknown>>>(
 ): Schema<InferObject<T>> {
   return {
     parse(input: unknown): Result<InferObject<T>> {
-      // TODO: Implement object validation
-      // 1. Check if input is an object (not null, not array)
-      // 2. Validate each field using its schema
-      // 3. Collect all errors with field names: "fieldName: error message"
-      // 4. Return success with data or failure with all errors
-      return { success: false, errors: ["Not implemented"] };
+      if (typeof input !== "object" || input === null || Array.isArray(input)) {
+        return { success: false, errors: [`Expected object, got ${getType(input)}`] };
+      }
+
+      const errors: string[] = [];
+      const data = {} as InferObject<T>;
+      const inputObj = input as Record<string, unknown>;
+
+      for (const [key, schema] of Object.entries(shape)) {
+        const result = schema.parse(inputObj[key]);
+        if (result.success) {
+          (data as Record<string, unknown>)[key] = result.data;
+        } else {
+          errors.push(...result.errors.map((e) => `${key}: ${e}`));
+        }
+      }
+
+      if (errors.length > 0) {
+        return { success: false, errors };
+      }
+
+      return { success: true, data };
     },
   };
 }
