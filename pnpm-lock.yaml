@@ -36,6 +36,21 @@ importers:
         specifier: ^4.3.5
         version: 4.3.5
 
+  packages/03-libraries:
+    dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.1.29
+        version: 2.1.29
+      valibot:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.9.3)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+
 packages:
 
   '@ark/schema@0.56.0':
