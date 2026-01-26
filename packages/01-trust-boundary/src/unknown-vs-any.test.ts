@@ -1,74 +1,53 @@
 import { describe, it, expect } from "vitest";
+import { getNameUnsafe, getNameSafe, processValue } from "./unknown-vs-any";
 
-describe("any = 'Disable type checking'", () => {
-  // Simulates data coming from an external source (API, user input, etc.)
-  function getExternalData(): any {
-    return { name: "Alice", age: 30 };
-  }
+describe("unknown vs any", () => {
+  /**
+   * Exercise 1: See how `any` causes runtime crashes
+   *
+   * The function compiles fine but crashes when data is null.
+   * This is why `any` is dangerous - TypeScript can't help you.
+   */
+  it("any: compiles but crashes at runtime", () => {
+    // Works when data has the expected shape
+    expect(getNameUnsafe({ name: "alice" })).toBe("ALICE");
 
-  function getMalformedData(): any {
-    return null; // API returned null instead of an object
-  }
-
-  it.todo("works when you're lucky");
-
-  it.todo("crashes when you're wrong - runtime error");
-
-  it.todo("causes silent bugs - NaN, undefined propagation");
-});
-
-describe("unknown - Need to Verify the Types", () => {
-  function getExternalData(): unknown {
-    return { name: "Alice", age: 30 };
-  }
-
-  it.todo("blocks unsafe access at compile time");
-
-  it.todo("allows access after typeof narrowing");
-
-  it.todo("allows access after instanceof narrowing");
-
-  it.todo("allows access after custom type guard");
-});
-
-describe("real world: parsing JSON from API", () => {
-  // Simulates JSON.parse which returns `any` by default
-  const apiResponse = '{"userId": 123, "email": "alice@example.com"}';
-  function parseUserUnsafe(json: string): any {
-    return JSON.parse(json);
-  }
-  const user = parseUserUnsafe(apiResponse);
-
-  it.todo("unsafe: any allows accessing non-existent nested properties");
-
-  function parseUserSafe(json: string): unknown {
-    return JSON.parse(json);
-  }
-
-  it.todo("safe: unknown + type guard validates before access");
-});
-
-describe("narrowing unknown safely", () => {
-  function process(value: unknown): string | number | null {
-    return false as any;
-  }
-
-  it.todo("narrows string and calls string methods", () => {
-    expect(process("hello")).toBe("HELLO");
+    // Crashes when data is null - TypeScript didn't warn us!
+    expect(() => getNameUnsafe(null)).toThrow();
   });
 
-  it.todo("narrows number and calls number methods", () => {
-    expect(process(3.14159)).toBe("3.14");
+  /**
+   * Exercise 2: Implement getNameSafe() to pass this test
+   *
+   * With `unknown`, TypeScript forces you to verify the type
+   * before accessing properties. This prevents runtime crashes.
+   */
+  it("unknown: forces type checking, returns null for invalid data", () => {
+    // Works with valid data
+    expect(getNameSafe({ name: "alice" })).toBe("ALICE");
+
+    // Returns null instead of crashing
+    expect(getNameSafe(null)).toBeNull();
+    expect(getNameSafe(undefined)).toBeNull();
+    expect(getNameSafe({ name: 123 })).toBeNull(); // name is not a string
+    expect(getNameSafe("not an object")).toBeNull();
   });
 
-  it.todo("narrows Error and accesses properties", () => {
-    expect(process(new Error("oops"))).toBe("oops");
-  });
+  /**
+   * Exercise 3: Implement processValue() to pass this test
+   *
+   * Practice narrowing `unknown` to different types using:
+   * - typeof for primitives (string, number)
+   * - instanceof for class instances (Error)
+   */
+  it("narrowing unknown: handle multiple types safely", () => {
+    expect(processValue("hello")).toBe("HELLO");
+    expect(processValue(3.14159)).toBe("3.14");
+    expect(processValue(new Error("oops"))).toBe("oops");
 
-  it.todo("returns null for unhandled types", () => {
-    expect(process({ foo: "bar" })).toBeNull();
-    expect(process(null)).toBeNull();
-    expect(process(undefined)).toBeNull();
-    expect(process([1, 2, 3])).toBeNull();
+    // Unhandled types return null
+    expect(processValue({ foo: "bar" })).toBeNull();
+    expect(processValue([1, 2, 3])).toBeNull();
+    expect(processValue(null)).toBeNull();
   });
 });
