@@ -34,10 +34,9 @@ export type User = {
  * Hint: z.object({ ... }), z.string().email(), z.number().min().max()
  */
 export const zodUserSchema = z.object({
-  // Your implementation here
-  name: z.unknown(),
-  email: z.unknown(),
-  age: z.unknown(),
+  name: z.string(),
+  email: z.string().email(),
+  age: z.number().min(0).max(150),
 });
 
 // ============================================================================
@@ -55,10 +54,9 @@ export const zodUserSchema = z.object({
  * Hint: v.object({ ... }), v.pipe(v.string(), v.email()), v.pipe(v.number(), v.minValue(), v.maxValue())
  */
 export const valibotUserSchema = v.object({
-  // Your implementation here
-  name: v.unknown(),
-  email: v.unknown(),
-  age: v.unknown(),
+  name: v.string(),
+  email: v.pipe(v.string(), v.email()),
+  age: v.pipe(v.number(), v.minValue(0), v.maxValue(150)),
 });
 
 // ============================================================================
@@ -73,11 +71,10 @@ export const valibotUserSchema = v.object({
  * - email: string (basic string, email validation is advanced)
  * - age: number, minimum 0, maximum 150
  *
- * Hint: type({ name: "string", age: "number >= 0 <= 150" })
+ * Hint: type({ name: "string", age: "0 <= number <= 150" })
  */
 export const arktypeUserSchema = type({
-  // Your implementation here
-  name: "unknown",
-  email: "unknown",
-  age: "unknown",
+  name: "string",
+  email: "string",
+  age: "0 <= number <= 150",
 });
