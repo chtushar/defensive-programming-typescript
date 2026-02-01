@@ -51,6 +51,12 @@ importers:
         specifier: ^4.3.5
         version: 4.3.5
 
+  packages/04-project:
+    dependencies:
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+
 packages:
 
   '@ark/schema@0.56.0':
