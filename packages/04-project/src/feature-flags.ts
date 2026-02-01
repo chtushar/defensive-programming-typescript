@@ -90,8 +90,11 @@ function hashUserId(userId: string): number {
  * Hint: safeParse returns { success, data, error }
  */
 export function parseConfig(data: unknown): Result<FlagConfig> {
-  // TODO: Implement
-  return { success: false, error: "Not implemented" };
+  const result = FlagConfigSchema.safeParse(data);
+  if (result.success) {
+    return { success: true, data: result.data };
+  }
+  return { success: false, error: result.error.message };
 }
 
 // ============================================================================
@@ -114,8 +117,14 @@ export function evaluateFlag(
   flag: FeatureFlag,
   context: EvaluationContext,
 ): boolean {
-  // TODO: Implement using switch(flag.kind)
-  return false;
+  switch (flag.kind) {
+    case "boolean":
+      return flag.enabled;
+    case "percentage":
+      return hashUserId(context.userId) < flag.percentage;
+    case "user-target":
+      return flag.allowedUserIds.includes(context.userId);
+  }
 }
 
 // ============================================================================
@@ -135,9 +144,14 @@ export class FeatureFlagsClient {
   private configError: string | null = null;
 
   constructor(configData: unknown) {
-    // TODO: Parse configData using parseConfig()
-    // If success: store flags in the Map by name
-    // If failure: store the error message
+    const result = parseConfig(configData);
+    if (result.success) {
+      for (const flag of result.data) {
+        this.flags.set(flag.name, flag);
+      }
+    } else {
+      this.configError = result.error;
+    }
   }
 
   /**
@@ -148,10 +162,15 @@ export class FeatureFlagsClient {
    * - { success: false, error } if config invalid or flag not found
    */
   isEnabled(flagName: string, context: EvaluationContext): Result<boolean> {
-    // TODO: Implement
-    // 1. If configError exists, return failure
-    // 2. If flag not found, return failure with flag name
-    // 3. Otherwise, evaluate and return success
-    return { success: false, error: "Not implemented" };
+    if (this.configError) {
+      return { success: false, error: `Invalid config: ${this.configError}` };
+    }
+
+    const flag = this.flags.get(flagName);
+    if (!flag) {
+      return { success: false, error: `Flag "${flagName}" not found` };
+    }
+
+    return { success: true, data: evaluateFlag(flag, context) };
   }
 }
